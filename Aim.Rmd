@@ -1,0 +1,84 @@
+---
+title: "Aim of the project"
+author: "Gerko Vink"
+date: ""
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+---
+
+# Load packages
+```{r, message=FALSE}
+library(mice)
+library(readr)
+library(countrycode)
+library(dplyr)
+library(magrittr)
+```
+
+---
+
+# Read in the data
+The following data are obtained from [openpsychometrics.org](https://openpsychometrics.org/_rawdata/)
+```{r}
+data <- read_delim("Data/data.csv", "\t", 
+    quote = "\\\"", escape_double = FALSE, 
+    trim_ws = TRUE)
+
+# some editing
+exclude <- c("A1", "A2", "AP", "EU", "FX")
+data %<>% 
+  filter(!country %in% exclude) %>% 
+  mutate(continent = countrycode(country, 
+                                 origin="iso2c", 
+                                 destination = 'continent'))
+```
+
+---
+
+# Aim
+The aim is to study the impact of different appraches for dealing with `not applicable's` in incomplete data. The following outline can be defined
+
+1. Formulate an analysis model using the 16 personality factors
+2. Run the analysis model on the data set to obtain the *true* data inference
+3. Obtain statistical properties of the *true* data set, such as
+- `mean()` for the 16 personality factors
+- `variance()` for the 16 personality factors
+- `cor()` for the 16 personality factors
+- etc. 
+4. Plot the distributions of the *true* data set
+5. Simulate `nsim = 1000` times the following:
+- a. Ampute the data with `ampute()` for a MAR mechanism based on continent and set the corresponding cells to `not applicable`. 
+- a. Ampute the data with `ampute()` for a different MAR mechanism. 
+- b. Impute the data $m$ times with `mice` for each of the following imputation scenarios:
+  - Exclude any row with `not applicable` and impute the missingness in the remaining set. 
+  - Impute the missingness, but do not allow `not applicable` as an imputation
+  - Impute the missingness, allowing `not applicable` as an imputation
+and for each of the following two methods:
+  - impute with `mice.impute.pmm`
+  - impute in two-steps where each column is joined with an indicator column (`not applicable` or not) and both columns are imputed. A simple data postprocessing on the imputed data can merge the cells and omit the indicators. 
+- c. calculate the same statistical properties as under (3) on each of the $m$ imputed sets
+- d. Run the analysis model on each of the $m$ imputed sets
+- e. Combine the $m$ statistics and parameters from (5b) and (5c) into single inferences`
+6. Analyze the simulation results by
+- a. Calculating the average parameters and statistics over the `nsim = 1000` simulations
+- b. Plotting the distributions of the statistics and parameters with e.g. boxplots
+- c. Calculating for all statistics and parameters the bootstrap CI.
+- d. Calculating for all parameters the parametric CI cf. Rubin's rules.  
+- e. Calculating the 95% coverage rates of the parameters and statistics (bootstrap CI and parametric CI)
+7. Evaluate the results and determine if and when `mice` would yield valid imputed sets given the studied methods and procedures. 
+
+---
+
+# Session
+```{r}
+sessionInfo()
+```
+
+---
+
+End of document
