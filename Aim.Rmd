@@ -18,6 +18,9 @@ library(readr)
 library(countrycode)
 library(dplyr)
 library(magrittr)
+library(purrr)
+library(corrplot)
+library(psych)
 ```
 
 ---
@@ -38,21 +41,124 @@ data %<>%
                                  destination = 'continent'))
 ```
 
+# Add principal component scores
+```{r}
+data %<>% 
+  mutate(principal(cbind(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10)) %>% 
+           pluck("scores") %>% as.data.frame %>% 
+           rename(Scale_A = "PC1"),
+         principal(cbind(B1, B2, B3, B4, B5, B6, B7, B8, B9, B10)) %>% 
+           pluck("scores") %>% as.data.frame %>% 
+           rename(Scale_B = "PC1"),
+         principal(cbind(C1, C2, C3, C4, C5, C6, C7, C8, C9, C10)) %>% 
+           pluck("scores") %>% as.data.frame %>% 
+           rename(Scale_C = "PC1"),
+         principal(cbind(D1, D2, D3, D4, D5, D6, D7, D8, D9, D10)) %>% 
+           pluck("scores") %>% as.data.frame %>% 
+           rename(Scale_D = "PC1"),
+         principal(cbind(E1, E2, E3, E4, E5, E6, E7, E8, E9, E10)) %>% 
+           pluck("scores") %>% as.data.frame %>% 
+           rename(Scale_E = "PC1"),
+         principal(cbind(F1, F2, F3, F4, F5, F6, F7, F8, F9, F10)) %>% 
+           pluck("scores") %>% as.data.frame %>% 
+           rename(Scale_F = "PC1"),
+         principal(cbind(G1, G2, G3, G4, G5, G6, G7, G8, G9, G10)) %>% 
+           pluck("scores") %>% as.data.frame %>% 
+           rename(Scale_G = "PC1"),
+         principal(cbind(H1, H2, H3, H4, H5, H6, H7, H8, H9, H10)) %>% 
+           pluck("scores") %>% as.data.frame %>% 
+           rename(Scale_H = "PC1"),
+         principal(cbind(I1, I2, I3, I4, I5, I6, I7, I8, I9, I10)) %>% 
+           pluck("scores") %>% as.data.frame %>% 
+           rename(Scale_I = "PC1"),
+         principal(cbind(J1, J2, J3, J4, J5, J6, J7, J8, J9, J10)) %>% 
+           pluck("scores") %>% as.data.frame %>% 
+           rename(Scale_J = "PC1"),
+         principal(cbind(K1, K2, K3, K4, K5, K6, K7, K8, K9, K10)) %>% 
+           pluck("scores") %>% as.data.frame %>% 
+           rename(Scale_K = "PC1"),
+         principal(cbind(L1, L2, L3, L4, L5, L6, L7, L8, L9, L10)) %>% 
+           pluck("scores") %>% as.data.frame %>% 
+           rename(Scale_L = "PC1"),
+         principal(cbind(M1, M2, M3, M4, M5, M6, M7, M8, M9, M10)) %>% 
+           pluck("scores") %>% as.data.frame %>% 
+           rename(Scale_M = "PC1"),
+         principal(cbind(N1, N2, N3, N4, N5, N6, N7, N8, N9, N10)) %>% 
+           pluck("scores") %>% as.data.frame %>% 
+           rename(Scale_N = "PC1"),
+         principal(cbind(O1, O2, O3, O4, O5, O6, O7, O8, O9, O10)) %>% 
+           pluck("scores") %>% as.data.frame %>% 
+           rename(Scale_O = "PC1"),
+         principal(cbind(P1, P2, P3, P4, P5, P6, P7, P8, P9, P10)) %>% 
+           pluck("scores") %>% as.data.frame %>% 
+           rename(Scale_P = "PC1"))
+```
+
+---
+
+## Correlations of the component scores
+```{r}
+cor_scale <- data %>% 
+  select(contains("Scale_")) %>% 
+  cor() %>% 
+  round(2)
+
+cor_scale
+cor_scale %>% corrplot(type = "lower", method = "square")
+
+```
+
+---
+
+# Add mean scores for the scales
+```{r}
+data %<>% 
+  mutate(Mean_A = data %>% select(starts_with("A", ignore.case = FALSE)) %>% rowMeans, 
+         Mean_B = data %>% select(starts_with("B", ignore.case = FALSE)) %>% rowMeans,
+         Mean_C = data %>% select(starts_with("C", ignore.case = FALSE)) %>% rowMeans,
+         Mean_D = data %>% select(starts_with("D", ignore.case = FALSE)) %>% rowMeans,
+         Mean_E = data %>% select(starts_with("E", ignore.case = FALSE)) %>% rowMeans,
+         Mean_F = data %>% select(starts_with("F", ignore.case = FALSE)) %>% rowMeans,
+         Mean_G = data %>% select(starts_with("G", ignore.case = FALSE)) %>% rowMeans,
+         Mean_H = data %>% select(starts_with("H", ignore.case = FALSE)) %>% rowMeans,
+         Mean_I = data %>% select(starts_with("I", ignore.case = FALSE)) %>% rowMeans,
+         Mean_J = data %>% select(starts_with("J", ignore.case = FALSE)) %>% rowMeans,
+         Mean_K = data %>% select(starts_with("K", ignore.case = FALSE)) %>% rowMeans,
+         Mean_L = data %>% select(starts_with("L", ignore.case = FALSE)) %>% rowMeans,
+         Mean_M = data %>% select(starts_with("M", ignore.case = FALSE)) %>% rowMeans,
+         Mean_N = data %>% select(starts_with("N", ignore.case = FALSE)) %>% rowMeans,
+         Mean_O = data %>% select(starts_with("O", ignore.case = FALSE)) %>% rowMeans,
+         Mean_P = data %>% select(starts_with("P", ignore.case = FALSE)) %>% rowMeans)
+```
+
+---
+
+## Correlations of the mean scores
+```{r}
+cor_mean <- data %>% 
+  select(contains("Mean_")) %>% 
+  cor() %>% 
+  round(2)
+
+cor_mean
+cor_mean %>% corrplot(type = "lower", method = "square")
+```
+
 ---
 
 # Aim
 The aim is to study the impact of different appraches for dealing with `not applicable's` in incomplete data. The following outline can be defined
 
-1. Formulate an analysis model using the 16 personality factors
-2. Run the analysis model on the data set to obtain the *true* data inference
-3. Obtain statistical properties of the *true* data set, such as
+1. Induce the Not applicables in the data (e.g with ampute and set the missings to not applicable)
+2. Formulate an analysis model using the 16 personality factors
+3. Run the analysis model on the data set to obtain the *true* data inference
+4. Obtain statistical properties of the *true* data set, such as
 - `mean()` for the 16 personality factors
 - `variance()` for the 16 personality factors
 - `cor()` for the 16 personality factors
 - etc. 
-4. Plot the distributions of the *true* data set
-5. Simulate `nsim = 1000` times the following:
-- a. Ampute the data with `ampute()` for a MAR mechanism based on continent and set the corresponding cells to `not applicable`. 
+5. Plot the distributions of the *true* data set
+6. Simulate `nsim = 1000` times the following:
 - a. Ampute the data with `ampute()` for a different MAR mechanism. 
 - b. Impute the data $m$ times with `mice` for each of the following imputation scenarios:
   - Exclude any row with `not applicable` and impute the missingness in the remaining set. 
@@ -64,13 +170,13 @@ and for each of the following two methods:
 - c. calculate the same statistical properties as under (3) on each of the $m$ imputed sets
 - d. Run the analysis model on each of the $m$ imputed sets
 - e. Combine the $m$ statistics and parameters from (5b) and (5c) into single inferences`
-6. Analyze the simulation results by
+7. Analyze the simulation results by
 - a. Calculating the average parameters and statistics over the `nsim = 1000` simulations
 - b. Plotting the distributions of the statistics and parameters with e.g. boxplots
 - c. Calculating for all statistics and parameters the bootstrap CI.
 - d. Calculating for all parameters the parametric CI cf. Rubin's rules.  
 - e. Calculating the 95% coverage rates of the parameters and statistics (bootstrap CI and parametric CI)
-7. Evaluate the results and determine if and when `mice` would yield valid imputed sets given the studied methods and procedures. 
+8. Evaluate the results and determine if and when `mice` would yield valid imputed sets given the studied methods and procedures. 
 
 ---
 
