@@ -18,7 +18,6 @@ n = nrow(na_data)
 nsim = 100
 
 # define simulation function as future
-st <- Sys.time() # timing
 plan(multisession)
 sim <- future_map(1:nsim, function(x){
   # draw bootstrap sample
@@ -67,8 +66,7 @@ sim <- future_map(1:nsim, function(x){
 }, 
 .options = furrr_options(seed = as.integer(123)), 
 .progress = TRUE)
-runtime <- Sys.time() - st # end timing
-runtime
+
 
 # save simulation
-save(sim, runtime, file = "Workspaces/3. Simulation_MCAR.RData")
+save(sim, file = "Workspaces/3. Simulation_MCAR.RData")
