@@ -37,7 +37,8 @@ pmm.mean.regression_as0 <- sim %>%
         pool() %>% summary(conf.int = TRUE) %>% 
         as.data.frame() %>% column_to_rownames(var = "term") %>% 
         mutate(cov.pop = `2.5 %` < true.mean.regression_as0[, 1] & true.mean.regression_as0[, 1] < `97.5 %`,
-               ciw.pop = `97.5 %` - `2.5 %`)) %>% 
+               ciw.pop = `97.5 %` - `2.5 %`,
+               bias = estimate - true.mean.regression_as0[, 1])) %>% 
         Reduce("+", .)/length(sim)
 
 # REGRESSION FOR WHEN NA IS ANALYZED AS 1
@@ -65,7 +66,8 @@ pmm.mean.regression_as1 <- sim %>%
         pool() %>% summary(conf.int = TRUE) %>% 
         as.data.frame() %>% column_to_rownames(var = "term") %>% 
         mutate(cov.pop = `2.5 %` < true.mean.regression_as1[, 1] & true.mean.regression_as1[, 1] < `97.5 %`,
-               ciw.pop = `97.5 %` - `2.5 %`)) %>% 
+               ciw.pop = `97.5 %` - `2.5 %`,
+               bias = estimate - true.mean.regression_as0[, 1])) %>% 
   Reduce("+", .)/length(sim)
 
 # REGRESSION FOR WHEN NA IS REMOVED
@@ -93,17 +95,18 @@ pmm.mean.regression_na.omit <- sim %>%
         pool() %>% summary(conf.int = TRUE) %>% 
         as.data.frame() %>% column_to_rownames(var = "term") %>% 
         mutate(cov.pop = `2.5 %` < true.mean.regression_na.omit[, 1] & true.mean.regression_na.omit[, 1] < `97.5 %`,
-               ciw.pop = `97.5 %` - `2.5 %`)) %>% 
+               ciw.pop = `97.5 %` - `2.5 %`,
+               bias = estimate - true.mean.regression_as0[, 1])) %>% 
   Reduce("+", .)/length(sim)
 
 # REGRESSION FOR WHEN ROWMEANS ARE CALCULATED ON OBSERVED ITEMS 
 # So if A1 and A2 are NA and all other A are observed, then MEAN_A = rowMeans(A3:A10)
 true.mean.regression_obs <- na_data  %>% 
   na_if(0)  %>% 
-  mutate(MEAN_A = rowMeans(select(., contains("A"))), 
-         MEAN_E = rowMeans(select(., contains("E"))),
-         MEAN_G = rowMeans(select(., contains("G"))),
-         MEAN_K = rowMeans(select(., contains("K")))) %$%
+  mutate(MEAN_A = rowMeans(select(., contains("A")), na.rm = TRUE), 
+         MEAN_E = rowMeans(select(., contains("E")), na.rm = TRUE),
+         MEAN_G = rowMeans(select(., contains("G")), na.rm = TRUE),
+         MEAN_K = rowMeans(select(., contains("K")), na.rm = TRUE)) %$%
   lm(MEAN_G ~ MEAN_A + MEAN_E + MEAN_K) %>% 
   summary() %>% 
   .$coefficients
@@ -122,5 +125,15 @@ pmm.mean.regression_obs <- sim %>%
         pool() %>% summary(conf.int = TRUE) %>% 
         as.data.frame() %>% column_to_rownames(var = "term") %>% 
         mutate(cov.pop = `2.5 %` < true.mean.regression_obs[, 1] & true.mean.regression_obs[, 1] < `97.5 %`,
-               ciw.pop = `97.5 %` - `2.5 %`)) %>% 
+               ciw.pop = `97.5 %` - `2.5 %`,
+               bias = estimate - true.mean.regression_as0[, 1])) %>% 
   Reduce("+", .)/length(sim)
+
+out <- rbind(pmm.mean.regression_as0,
+             pmm.mean.regression_as1,
+             pmm.mean.regression_na.omit,
+             pmm.mean.regression_obs) %>% mutate(sim = c(rep("as0", 4),
+                                                         rep("as1", 4),
+                                                         rep("remove", 4),
+                                                         rep("obs_only", 4)))
+out
