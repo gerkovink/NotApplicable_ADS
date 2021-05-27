@@ -36,18 +36,21 @@ sim.mar <- future_map(1:nsim, function(x){
               printFlag = FALSE,
               exclude = -Inf, 
               threshold = 1, 
+              m = 10,
               eps = 0)
   imp.exclude <- mice(incomplete$amp, 
                       method = "pmm.exclude", 
                       printFlag = FALSE,
                       exclude = 0, 
                       threshold = 1, 
+                      m = 10,
                       eps = 0)
   imp.overimpute <- mice(incomplete$amp %>% na_if(0), 
                          method = "pmm", 
                          printFlag = FALSE,
                          exclude = -Inf, 
-                         threshold = 1, 
+                         threshold = 1,
+                         m = 10,
                          eps = 0)
   indic <- apply(incomplete$amp, MARGIN = 1, 
         function(x) any(x == 0, na.rm = TRUE))
@@ -56,6 +59,7 @@ sim.mar <- future_map(1:nsim, function(x){
                          printFlag = FALSE,
                          exclude = -Inf, 
                          threshold = 1, 
+                         m = 10,
                          eps = 0)
   return(list(boot = boot, 
               amp = incomplete$amp, 
